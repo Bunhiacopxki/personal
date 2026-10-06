@@ -95,12 +95,22 @@ public readonly struct BigInt : IComparable<BigInt>, IEquatable<BigInt>
         return new BigInt(a._sign * b._sign, q);
     }
 
-    public static BigInt Div(BigInt a, BigInt b) { BigInt r; return DivRem(a, b, out r); }
-    public static BigInt Rem(BigInt a, BigInt b) { BigInt r; DivRem(a, b, out r); return r; }
+    public static BigInt Div(BigInt a, BigInt b) 
+    { 
+        BigInt r; 
+        return DivRem(a, b, out r); 
+    }
+
+    public static BigInt Rem(BigInt a, BigInt b) 
+    { 
+        BigInt r; 
+        DivRem(a, b, out r); 
+        return r; 
+    }
 
     public static BigInt Pow(BigInt x, int k)
     {
-        if (k < 0) throw new ArgumentOutOfRangeException(nameof(k), "Số mũ phải >= 0.");
+        if (k < 0) throw new ArgumentOutOfRangeException(nameof(k), "k < 0.");
         BigInt result = One, b = x;
         while (k > 0)
         {
@@ -142,7 +152,7 @@ public readonly struct BigInt : IComparable<BigInt>, IEquatable<BigInt>
     public static explicit operator long(BigInt v)
     {
         long r;
-        if (!v.TryToInt64(out r)) throw new OverflowException("Giá trị vượt phạm vi long.");
+        if (!v.TryToInt64(out r)) throw new OverflowException("Overflow");
         return r;
     }
     public static explicit operator double(BigInt v) => v.ToDouble();
@@ -163,8 +173,7 @@ public readonly struct BigInt : IComparable<BigInt>, IEquatable<BigInt>
         unchecked
         {
             int h = _sign;
-            if (_mag != null)
-                for (int i = 0; i < _mag.Length; i++) h = h * 31 + (int)_mag[i];
+            if (_mag != null) for (int i = 0; i < _mag.Length; i++) h = h * 31 + (int)_mag[i];
             return h;
         }
     }
@@ -175,7 +184,7 @@ public readonly struct BigInt : IComparable<BigInt>, IEquatable<BigInt>
     public static bool operator >(BigInt a, BigInt b) => a.CompareTo(b) > 0;
     public static bool operator <=(BigInt a, BigInt b) => a.CompareTo(b) <= 0;
     public static bool operator >=(BigInt a, BigInt b) => a.CompareTo(b) >= 0;
-
+// chưa hiểu
     public bool TryToInt64(out long value)
     {
         value = 0;
@@ -198,7 +207,8 @@ public readonly struct BigInt : IComparable<BigInt>, IEquatable<BigInt>
     {
         if (_sign == 0) return 0.0;
         if (BigMag.BitLength(_mag) > 1024) return _sign > 0 ? double.PositiveInfinity : double.NegativeInfinity;
-        int shift; bool sticky;
+        int shift; 
+        bool sticky;
         ulong top = BigMag.Top64(_mag, out shift, out sticky);
         if (sticky) top |= 1UL;
         double d = (double)top;
@@ -301,11 +311,31 @@ internal static class BigMag
     {
         if (x == 0) return 32;
         int n = 0;
-        if ((x & 0xFFFF0000u) == 0) { n += 16; x <<= 16; }
-        if ((x & 0xFF000000u) == 0) { n += 8; x <<= 8; }
-        if ((x & 0xF0000000u) == 0) { n += 4; x <<= 4; }
-        if ((x & 0xC0000000u) == 0) { n += 2; x <<= 2; }
-        if ((x & 0x80000000u) == 0) { n += 1; }
+        if ((x & 0xFFFF0000u) == 0) 
+        { 
+            n += 16; 
+            x <<= 16; 
+        }
+
+        if ((x & 0xFF000000u) == 0) 
+        { 
+            n += 8; 
+            x <<= 8; 
+        }
+
+        if ((x & 0xF0000000u) == 0) 
+        { 
+            n += 4; 
+            x <<= 4; 
+        }
+
+        if ((x & 0xC0000000u) == 0) 
+        { 
+            n += 2; 
+            x <<= 2; 
+        }
+
+        if ((x & 0x80000000u) == 0) n += 1;
         return n;
     }
 
@@ -325,8 +355,7 @@ internal static class BigMag
     public static int Compare(uint[] a, uint[] b)
     {
         if (a.Length != b.Length) return a.Length < b.Length ? -1 : 1;
-        for (int i = a.Length - 1; i >= 0; i--)
-            if (a[i] != b[i]) return a[i] < b[i] ? -1 : 1;
+        for (int i = a.Length - 1; i >= 0; i--) if (a[i] != b[i]) return a[i] < b[i] ? -1 : 1;
         return 0;
     }
 
